@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Técnica de Produção</title>
+    
+    <!-- Tailwind CSS para Estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js e Plugin DataLabels para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    
+    <!-- html2pdf.js e html2canvas para exportações (PDF e JPEG) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Estilos adicionais para impressão e PDFs */
+        @media print {
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+        }
+        .photo-preview {
+            max-height: 120px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+        }
+        
+        /* Classe customizada base para inputs */
+        .input-destaque {
+            border-width: 2px;
+            border-color: #94a3b8; /* slate-400 */
+            background-color: #ffffff;
+            transition: all 0.2s;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        .input-destaque:focus {
+            border-color: #16a34a; /* green-600 */
+            outline: none;
+            box-shadow: 0 0 0 4px #dcfce7; /* ring-green-100 */
+            background-color: #f0fdf4; /* green-50 */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-20">
+
+    <!-- Container Principal (Conteúdo exportado) -->
+    <div id="export-container" class="max-w-6xl mx-auto mt-8 bg-white shadow-2xl rounded-xl p-8 border border-slate-200">
+        
+        <!-- Cabeçalho com Logo -->
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 border-b-4 border-green-600 pb-6 mb-8">
+            <img src="https://i.imgur.com/wEozr34.png" crossorigin="anonymous" alt="Logo da Empresa" class="h-24 object-contain drop-shadow-md">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-green-700 uppercase tracking-wide">Ficha Técnica de Produção</h1>
+                <h2 class="text-xl font-medium text-slate-500 mt-1">Registro Geral</h2>
+            </div>
+        </div>
+
+        <!-- Formulário (Será ocultado na exportação) -->
+        <div id="form-section" class="no-print bg-slate-50 p-6 md:p-8 rounded-xl border-2 border-slate-200 mb-10 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-3">
+                <i data-lucide="clipboard-edit" class="w-6 h-6 mr-2 text-green-600"></i> Preencher Novo Registro
+            </h3>
+            
+            <form id="registroForm" class="space-y-6">
+                <!-- Linha 1: Dados automáticos e básicos -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Data</label>
+                        <input type="text" id="dataAtual" readonly class="w-full rounded-md border-2 border-slate-300 bg-slate-200 px-4 py-2.5 text-slate-600 font-bold cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Semana</label>
+                        <input type="text" id="semanaAtual" readonly class="w-full rounded-md border-2 border-slate-300 bg-slate-200 px-4 py-2.5 text-slate-600 font-bold cursor-not-allowed">
+                    </div>
+                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Bloco</label>
+                            <select id="bloco" class="w-full rounded-md px-4 py-2.5 input-destaque cursor-pointer" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label id="labelBlocoOutro" class="block text-sm font-bold text-slate-700 mb-1 hidden">Qual Bloco?</label>
+                            <input type="text" id="blocoOutro" class="w-full rounded-md px-4 py-2.5 hidden input-destaque" placeholder="Digite o bloco">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linha 2: Cultura e Canteiros -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Cultura</label>
+                            <select id="cultura" class="w-full rounded-md px-4 py-2.5 input-destaque cursor-pointer" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="Brócolis">Brócolis</option>
+                                <option value="Couve flor">Couve flor</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label id="labelCulturaOutro" class="block text-sm font-bold text-slate-700 mb-1 hidden">Qual Cultura?</label>
+                            <input type="text" id="culturaOutro" class="w-full rounded-md px-4 py-2.5 hidden input-destaque" placeholder="Digite a cultura">
+                        </div>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Total de Canteiros</label>
+                        <input type="number" id="totalCanteiros" min="0" class="w-full rounded-md px-4 py-2.5 input-destaque" placeholder="Ex: 10" required>
+                    </div>
+                </div>
+
+                <hr class="border-slate-300 my-6">
+
+                <!-- Linha 3: Métricas de Produção e Fotos -->
+                <div>
+                    <h4 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
+                        <i data-lucide="calculator" class="w-5 h-5 mr-2 text-slate-500"></i> Métricas e Evidências Fotográficas
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Mortalidade -->
+                        <div class="bg-white p-5 rounded-xl border-2 border-red-200 shadow-sm relative overflow-hidden group">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
+                            <label class="block text-sm font-bold text-red-600 mb-2 uppercase tracking-wide">Mortalidade</label>
+                            <input type="number" id="mortalidade" min="0" class="w-full mb-4 rounded-md px-4 py-2.5 input-destaque border-red-300 focus:border-red-500 focus:ring-red-100" required placeholder="Quantidade">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Anexar Foto</label>
+                            <input type="file" id="fotoMortalidade" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer">
+                        </div>
+
+                        <!-- Até 5cm -->
+                        <div class="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm relative overflow-hidden group">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-orange-500"></div>
+                            <label class="block text-sm font-bold text-orange-600 mb-2 uppercase tracking-wide">Cabeça até 5cm</label>
+                            <input type="number" id="ate5cm" min="0" class="w-full mb-4 rounded-md px-4 py-2.5 input-destaque border-orange-300 focus:border-orange-500 focus:ring-orange-100" required placeholder="Quantidade">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Anexar Foto</label>
+                            <input type="file" id="fotoAte5cm" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer">
+                        </div>
+
+                        <!-- 5,1 a 14cm -->
+                        <div class="bg-white p-5 rounded-xl border-2 border-blue-200 shadow-sm relative overflow-hidden group">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+                            <label class="block text-sm font-bold text-blue-600 mb-2 uppercase tracking-wide">Cabeça 5.1 a 14cm</label>
+                            <input type="number" id="de5a14cm" min="0" class="w-full mb-4 rounded-md px-4 py-2.5 input-destaque border-blue-300 focus:border-blue-500 focus:ring-blue-100" required placeholder="Quantidade">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Anexar Foto</label>
+                            <input type="file" id="fotoDe5a14cm" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                        </div>
+
+                        <!-- Acima de 14cm -->
+                        <div class="bg-white p-5 rounded-xl border-2 border-green-200 shadow-sm relative overflow-hidden group">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+                            <label class="block text-sm font-bold text-green-600 mb-2 uppercase tracking-wide">Cabeças > 14cm</label>
+                            <input type="number" id="acima14cm" min="0" class="w-full mb-4 rounded-md px-4 py-2.5 input-destaque border-green-300 focus:border-green-500 focus:ring-green-100" required placeholder="Quantidade">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Anexar Foto</label>
+                            <input type="file" id="fotoAcima14cm" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Totalizador Automático e Botão Salvar -->
+                <div class="mt-6 p-5 bg-slate-800 rounded-xl flex flex-col md:flex-row justify-between items-center shadow-md">
+                    <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                        <i data-lucide="sigma" class="w-8 h-8 text-green-400"></i>
+                        <div>
+                            <span class="block text-slate-300 text-sm font-medium uppercase tracking-wider">Total de Unidades Avaliadas</span>
+                            <input type="text" id="totalUnidades" readonly class="text-3xl font-black text-white bg-transparent border-none p-0 focus:ring-0 w-48" value="0">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="btnSalvar" class="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg py-3 px-8 rounded-lg shadow-lg transition-transform hover:scale-105 flex items-center justify-center">
+                        <i data-lucide="plus-circle" class="w-6 h-6 mr-2"></i> Adicionar ao Registro
+                    </button>
+                    <button type="button" id="btnCancelarEdicao" onclick="cancelarEdicao()" class="hidden w-full md:w-auto bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-lg ml-0 md:ml-4 mt-4 md:mt-0 transition-colors">
+                        Cancelar Edição
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Seção de Gráficos (Dashboard) -->
+        <div id="dashboard-section" class="mb-12 hidden">
+            <h3 class="text-2xl font-extrabold text-slate-700 mb-6 border-b-2 border-slate-200 pb-2 flex items-center">
+                <i data-lucide="bar-chart-2" class="w-7 h-7 mr-2 text-green-600"></i> Dashboard de Produção
+            </h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Gráfico de Pizza -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-100">
+                    <h4 class="text-center font-bold text-slate-700 mb-6 uppercase tracking-wide">Proporção Geral (%)</h4>
+                    <div class="relative h-72 w-full flex justify-center">
+                        <canvas id="graficoPizza"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Barras -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-100">
+                    <h4 class="text-center font-bold text-slate-700 mb-6 uppercase tracking-wide">Quantidades e Tendência</h4>
+                    <div class="relative h-72 w-full">
+                        <canvas id="graficoBarras"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico e Fotos -->
+        <div id="historico-section" class="hidden">
+            <h3 class="text-2xl font-extrabold text-slate-700 mb-6 border-b-2 border-slate-200 pb-2 flex items-center">
+                <i data-lucide="history" class="w-7 h-7 mr-2 text-green-600"></i> Histórico de Lançamentos
+            </h3>
+            
+            <div id="historicoContainer" class="space-y-6">
+                <!-- Cards inseridos via JS -->
+            </div>
+        </div>
+
+        <!-- Estado vazio -->
+        <div id="emptyState" class="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+            <i data-lucide="leaf" class="w-20 h-20 mx-auto text-slate-300 mb-4"></i>
+            <h3 class="text-xl font-bold text-slate-500">Nenhum registro encontrado</h3>
+            <p class="text-slate-400 mt-2">Preencha o formulário acima para iniciar os gráficos e o histórico fotográfico.</p>
+        </div>
+
+    </div>
+
+    <!-- Botões Flutuantes de Exportação -->
+    <div class="fixed bottom-6 right-6 flex flex-col gap-4 no-print z-50">
+        <!-- PDF -->
+        <button onclick="exportarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex items-center justify-center transition-transform hover:scale-110 group relative" title="Exportar para PDF">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
+            <span class="absolute right-16 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Baixar PDF</span>
+        </button>
+        <!-- JPEG -->
+        <button onclick="exportarJPEG()" class="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex items-center justify-center transition-transform hover:scale-110 group relative" title="Exportar como Imagem (JPEG)">
+            <i data-lucide="image" class="w-6 h-6"></i>
+            <span class="absolute right-16 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Baixar Imagem</span>
+        </button>
+        <!-- IMPRIMIR -->
+        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white p-4 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.3)] flex items-center justify-center transition-transform hover:scale-110 group relative" title="Imprimir Tela">
+            <i data-lucide="printer" class="w-6 h-6"></i>
+            <span class="absolute right-16 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Imprimir</span>
+        </button>
+    </div>
+
+    <!-- SCRIPT PRINCIPAL -->
+    <script>
+        // Registra os Plugins do Chart.js
+        Chart.register(ChartDataLabels);
+        lucide.createIcons();
+
+        // Dados Globais
+        let registros = [];
+        let pieChart = null;
+        let barChart = null;
+        let modoEdicaoIndex = -1; // -1 significa modo de Criação
+
+        window.onload = function() {
+            preencherDataESemana();
+            popularBlocos();
+            configurarCamposOutros();
+            configurarCalculoTotal();
+        };
+
+        // Calcula Data/Semana
+        function preencherDataESemana() {
+            const hoje = new Date();
+            const dia = String(hoje.getDate()).padStart(2, '0');
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            const ano = hoje.getFullYear();
+            document.getElementById('dataAtual').value = `${dia}/${mes}/${ano}`;
+
+            const target = new Date(hoje.valueOf());
+            const dayNr = (hoje.getDay() + 6) % 7;
+            target.setDate(target.getDate() - dayNr + 3);
+            const firstThursday = target.valueOf();
+            target.setMonth(0, 1);
+            if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+            const weekNumber = 1 + Math.ceil((firstThursday - target) / 604800000);
+            
+            document.getElementById('semanaAtual').value = `Semana ${weekNumber}`;
+        }
+
+        // Popula Select Bloco
+        function popularBlocos() {
+            const selectBloco = document.getElementById('bloco');
+            const optionOutros = selectBloco.querySelector('option[value="outros"]');
+            for (let i = 1; i <= 18; i++) {
+                const value = String(i).padStart(2, '0');
+                const option = document.createElement('option');
+                option.value = value;
+                option.text = `Bloco ${value}`;
+                selectBloco.insertBefore(option, optionOutros);
+            }
+        }
+
+        // Interação "Outros"
+        function configurarCamposOutros() {
+            const setupSelect = (selectId, inputId, labelId) => {
+                document.getElementById(selectId).addEventListener('change', (e) => {
+                    const input = document.getElementById(inputId);
+                    const label = document.getElementById(labelId);
+                    if (e.target.value === 'outros') {
+                        input.classList.remove('hidden');
+                        label.classList.remove('hidden');
+                        input.required = true;
+                    } else {
+                        input.classList.add('hidden');
+                        label.classList.add('hidden');
+                        input.required = false;
+                        input.value = '';
+                    }
+                });
+            };
+            setupSelect('bloco', 'blocoOutro', 'labelBlocoOutro');
+            setupSelect('cultura', 'culturaOutro', 'labelCulturaOutro');
+        }
+
+        // Calcula total avaliadas em tempo real
+        function configurarCalculoTotal() {
+            const inputs = ['mortalidade', 'ate5cm', 'de5a14cm', 'acima14cm'];
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    const soma = inputs.reduce((total, curId) => total + (parseInt(document.getElementById(curId).value) || 0), 0);
+                    document.getElementById('totalUnidades').value = soma;
+                });
+            });
+        }
+
+        // Lê foto em Base64
+        function lerFotoBase64(fileInputId) {
+            return new Promise((resolve) => {
+                const fileInput = document.getElementById(fileInputId);
+                if (fileInput.files && fileInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.readAsDataURL(fileInput.files[0]);
+                } else {
+                    resolve(null);
+                }
+            });
+        }
+
+        // ENVIO DO FORMULÁRIO (Criação ou Edição)
+        document.getElementById('registroForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            let blocoVal = document.getElementById('bloco').value;
+            if (blocoVal === 'outros') blocoVal = document.getElementById('blocoOutro').value;
+
+            let culturaVal = document.getElementById('cultura').value;
+            if (culturaVal === 'outros') culturaVal = document.getElementById('culturaOutro').value;
+
+            const metricas = {
+                mortalidade: parseInt(document.getElementById('mortalidade').value) || 0,
+                ate5cm: parseInt(document.getElementById('ate5cm').value) || 0,
+                de5a14cm: parseInt(document.getElementById('de5a14cm').value) || 0,
+                acima14cm: parseInt(document.getElementById('acima14cm').value) || 0
+            };
+
+            // Processar fotos (se editando e sem nova foto, manter a antiga)
+            const fotoMort = (await lerFotoBase64('fotoMortalidade')) || (modoEdicaoIndex >= 0 ? registros[modoEdicaoIndex].fotos.mortalidade : null);
+            const foto5 = (await lerFotoBase64('fotoAte5cm')) || (modoEdicaoIndex >= 0 ? registros[modoEdicaoIndex].fotos.ate5cm : null);
+            const foto14 = (await lerFotoBase64('fotoDe5a14cm')) || (modoEdicaoIndex >= 0 ? registros[modoEdicaoIndex].fotos.de5a14cm : null);
+            const fotoAcima = (await lerFotoBase64('fotoAcima14cm')) || (modoEdicaoIndex >= 0 ? registros[modoEdicaoIndex].fotos.acima14cm : null);
+
+            const registroObj = {
+                data: document.getElementById('dataAtual').value,
+                semana: document.getElementById('semanaAtual').value,
+                bloco: blocoVal,
+                cultura: culturaVal,
+                totalCanteiros: document.getElementById('totalCanteiros').value,
+                metricas: metricas,
+                fotos: { mortalidade: fotoMort, ate5cm: foto5, de5a14cm: foto14, acima14cm: fotoAcima }
+            };
+
+            if (modoEdicaoIndex >= 0) {
+                // Atualizar existente
+                registros[modoEdicaoIndex] = registroObj;
+                cancelarEdicao(false); // limpa UI sem apagar dados do form ainda
+            } else {
+                // Novo registro inserido no início
+                registros.unshift(registroObj);
+            }
+
+            // Atualizar UI
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            document.getElementById('historico-section').classList.remove('hidden');
+            
+            atualizarGraficos();
+            renderHistorico();
+            
+            // Limpeza
+            e.target.reset();
+            preencherDataESemana();
+            document.getElementById('totalUnidades').value = '0';
+            document.getElementById('bloco').dispatchEvent(new Event('change'));
+            document.getElementById('cultura').dispatchEvent(new Event('change'));
+
+            // Feedback visual do botão
+            const btn = document.getElementById('btnSalvar');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="check" class="w-6 h-6 mr-2"></i> Sucesso!`;
+            btn.classList.replace('bg-green-500', 'bg-emerald-600');
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = textoOriginal;
+                btn.classList.replace('bg-emerald-600', 'bg-green-500');
+                lucide.createIcons();
+            }, 2000);
+        });
+
+        // ================= EDIÇÃO E EXCLUSÃO =================
+        
+        function editarRegistro(index) {
+            modoEdicaoIndex = index;
+            const reg = registros[index];
+            
+            // Preencher Selects (Tratando "Outros")
+            const selectBloco = document.getElementById('bloco');
+            const opBloco = Array.from(selectBloco.options).find(o => o.value === reg.bloco);
+            if (opBloco) {
+                selectBloco.value = reg.bloco;
+            } else {
+                selectBloco.value = 'outros';
+                document.getElementById('blocoOutro').value = reg.bloco;
+            }
+            selectBloco.dispatchEvent(new Event('change'));
+
+            const selectCultura = document.getElementById('cultura');
+            const opCultura = Array.from(selectCultura.options).find(o => o.value === reg.cultura);
+            if (opCultura) {
+                selectCultura.value = reg.cultura;
+            } else {
+                selectCultura.value = 'outros';
+                document.getElementById('culturaOutro').value = reg.cultura;
+            }
+            selectCultura.dispatchEvent(new Event('change'));
+
+            // Demais campos
+            document.getElementById('totalCanteiros').value = reg.totalCanteiros;
+            document.getElementById('mortalidade').value = reg.metricas.mortalidade;
+            document.getElementById('ate5cm').value = reg.metricas.ate5cm;
+            document.getElementById('de5a14cm').value = reg.metricas.de5a14cm;
+            document.getElementById('acima14cm').value = reg.metricas.acima14cm;
+            
+            // Força atualizar o totalizador
+            document.getElementById('mortalidade').dispatchEvent(new Event('input'));
+
+            // Alterar visual do formulário para "Modo Edição"
+            const btn = document.getElementById('btnSalvar');
+            btn.innerHTML = `<i data-lucide="save" class="w-6 h-6 mr-2"></i> Salvar Alterações`;
+            btn.classList.replace('bg-green-500', 'bg-blue-600');
+            btn.classList.replace('hover:bg-green-600', 'hover:bg-blue-700');
+            document.getElementById('btnCancelarEdicao').classList.remove('hidden');
+            
+            // Limpa campos de file pra não confundir
+            ['fotoMortalidade', 'fotoAte5cm', 'fotoDe5a14cm', 'fotoAcima14cm'].forEach(id => document.getElementById(id).value = '');
+
+            lucide.createIcons();
+            document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelarEdicao(resetForm = true) {
+            modoEdicaoIndex = -1;
+            const btn = document.getElementById('btnSalvar');
+            btn.innerHTML = `<i data-lucide="plus-circle" class="w-6 h-6 mr-2"></i> Adicionar ao Registro`;
+            btn.classList.replace('bg-blue-600', 'bg-green-500');
+            btn.classList.replace('hover:bg-blue-700', 'hover:bg-green-600');
+            document.getElementById('btnCancelarEdicao').classList.add('hidden');
+            
+            if(resetForm) {
+                document.getElementById('registroForm').reset();
+                preencherDataESemana();
+                document.getElementById('totalUnidades').value = '0';
+                document.getElementById('bloco').dispatchEvent(new Event('change'));
+                document.getElementById('cultura').dispatchEvent(new Event('change'));
+            }
+            lucide.createIcons();
+        }
+
+        function excluirRegistro(index) {
+            if(confirm("Tem certeza que deseja apagar este registro permanentemente?")) {
+                registros.splice(index, 1);
+                
+                if(modoEdicaoIndex === index) cancelarEdicao();
+                else if (modoEdicaoIndex > index) modoEdicaoIndex--; // Corrige o indice se apagou algo anterior
+                
+                if(registros.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    document.getElementById('dashboard-section').classList.add('hidden');
+                    document.getElementById('historico-section').classList.add('hidden');
+                } else {
+                    renderHistorico();
+                    atualizarGraficos();
+                }
+            }
+        }
+
+        // ================= RENDERIZAR HISTÓRICO =================
+        function renderHistorico() {
+            const container = document.getElementById('historicoContainer');
+            container.innerHTML = ''; // Limpar para re-renderizar
+            
+            registros.forEach((reg, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col hover:shadow-md transition-shadow relative";
+                
+                const headerHTML = `
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 mb-5">
+                        <div class="flex items-center gap-3">
+                            <img src="https://i.imgur.com/wEozr34.png" crossorigin="anonymous" class="h-10 w-auto bg-slate-50 p-1 rounded border">
+                            <div>
+                                <span class="text-sm text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded">${reg.data} - ${reg.semana}</span>
+                                <h4 class="text-lg font-black text-slate-800 mt-1 uppercase">Bloco: ${reg.bloco} <span class="text-slate-400 mx-1">|</span> Cultura: ${reg.cultura}</h4>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 mt-4 md:mt-0 w-full md:w-auto justify-between md:justify-end">
+                            <div class="bg-green-100 text-green-800 px-4 py-1.5 rounded-lg text-sm font-bold border border-green-200">
+                                Canteiros: ${reg.totalCanteiros}
+                            </div>
+                            <!-- Botões Editar/Excluir (Escondidos na impressão) -->
+                            <div class="flex gap-2 no-print">
+                                <button type="button" onclick="editarRegistro(${index})" class="text-blue-600 hover:bg-blue-100 bg-blue-50 p-2 rounded-md transition-colors" title="Editar">
+                                    <i data-lucide="edit-2" class="w-5 h-5"></i>
+                                </button>
+                                <button type="button" onclick="excluirRegistro(${index})" class="text-red-600 hover:bg-red-100 bg-red-50 p-2 rounded-md transition-colors" title="Excluir">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const fotosArray = [
+                    { label: 'Mortalidade', valor: reg.metricas.mortalidade, foto: reg.fotos.mortalidade, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100' },
+                    { label: 'Até 5cm', valor: reg.metricas.ate5cm, foto: reg.fotos.ate5cm, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
+                    { label: '5.1 a 14cm', valor: reg.metricas.de5a14cm, foto: reg.fotos.de5a14cm, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
+                    { label: '> 14cm', valor: reg.metricas.acima14cm, foto: reg.fotos.acima14cm, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100' }
+                ];
+
+                let metricsHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
+                fotosArray.forEach(item => {
+                    metricsHTML += `
+                        <div class="flex flex-col items-center p-4 ${item.bg} rounded-lg border ${item.border} text-center">
+                            <span class="text-xs text-slate-600 font-bold uppercase tracking-wider mb-1">${item.label}</span>
+                            <span class="text-2xl font-black ${item.color} mb-3">${item.valor}</span>
+                            ${item.foto ? `<img src="${item.foto}" class="photo-preview w-full object-cover shadow-sm border border-white" alt="Foto">` : `<div class="py-6 text-xs text-slate-400 italic">Sem foto anexa</div>`}
+                        </div>
+                    `;
+                });
+                metricsHTML += `</div>`;
+                
+                card.innerHTML = headerHTML + metricsHTML;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // ================= GRÁFICOS =================
+        function atualizarGraficos() {
+            let mort = 0, ate5 = 0, de5a14 = 0, acima14 = 0;
+            registros.forEach(r => {
+                mort += r.metricas.mortalidade;
+                ate5 += r.metricas.ate5cm;
+                de5a14 += r.metricas.de5a14cm;
+                acima14 += r.metricas.acima14cm;
+            });
+            const totais = [mort, ate5, de5a14, acima14];
+            
+            const labels = ['Mortalidade', 'Até 5cm', '5.1 a 14cm', '> 14cm'];
+            const coresBase = ['#ef4444', '#f97316', '#3b82f6', '#22c55e'];
+
+            // GRÁFICO DE PIZZA (COM DATALABELS VISÍVEIS)
+            const ctxPizza = document.getElementById('graficoPizza').getContext('2d');
+            if (pieChart) pieChart.destroy();
+            pieChart = new Chart(ctxPizza, {
+                type: 'pie',
+                data: { labels: labels, datasets: [{ data: totais, backgroundColor: coresBase, borderWidth: 2, borderColor: '#fff' }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { weight: 'bold' } } },
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 16 },
+                            formatter: (value, context) => {
+                                let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                if(value === 0 || sum === 0) return null;
+                                return Math.round((value * 100) / sum) + '%';
+                            }
+                        }
+                    }
+                }
+            });
+
+            // GRÁFICO DE BARRAS COM TENDÊNCIA
+            const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
+            if (barChart) barChart.destroy();
+            barChart = new Chart(ctxBarras, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { type: 'line', label: 'Tendência', data: totais, borderColor: '#475569', backgroundColor: 'transparent', borderWidth: 3, tension: 0.4, pointRadius: 6, pointBackgroundColor: '#475569', datalabels: { display: false } },
+                        { type: 'bar', label: 'Quantidades', data: totais, backgroundColor: coresBase, borderRadius: 6, datalabels: { display: false } }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } },
+                    plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold' } } } }
+                }
+            });
+        }
+
+        // ================= EXPORTAÇÃO =================
+        
+        function prepararExportacao() {
+            if (registros.length === 0) { alert("Por favor, adicione pelo menos um registro."); return false; }
+            if (modoEdicaoIndex >= 0) { alert("Por favor, termine a edição atual salvando ou cancelando antes de exportar."); return false; }
+            // Oculta área de inserção
+            document.getElementById('form-section').classList.add('hidden');
+            return true;
+        }
+
+        function finalizarExportacao() {
+            document.getElementById('form-section').classList.remove('hidden');
+        }
+
+        // Exportar PDF
+        function exportarPDF() {
+            if(!prepararExportacao()) return;
+            const element = document.getElementById('export-container');
+            const dataFile = document.getElementById('dataAtual').value.replace(/\//g, '-');
+            
+            html2pdf().set({
+                margin: 10,
+                filename: `Ficha_Producao_${dataFile}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).from(element).save().then(() => finalizarExportacao());
+        }
+
+        // Exportar JPEG
+        function exportarJPEG() {
+            if(!prepararExportacao()) return;
+            // Oculta botões flutuantes temporariamente do DOM visual do canvas
+            document.querySelectorAll('.no-print').forEach(e => e.style.display = 'none');
+            
+            const element = document.getElementById('export-container');
+            const dataFile = document.getElementById('dataAtual').value.replace(/\//g, '-');
+
+            html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#f8fafc' }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Ficha_Producao_${dataFile}.jpeg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.click();
+                
+                // Restaura UI
+                document.querySelectorAll('.no-print').forEach(e => e.style.display = '');
+                finalizarExportacao();
+            });
+        }
+    </script>
+</body>
+</html>
