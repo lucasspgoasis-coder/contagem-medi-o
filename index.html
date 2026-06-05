@@ -214,12 +214,14 @@
                     <i data-lucide="table-properties" class="w-5 h-5 mr-2 text-green-600"></i> Tabela Resumo Consolidada
                 </h4>
                 <div class="overflow-x-auto rounded-lg border border-slate-200">
-                    <table class="w-full text-left border-collapse">
+                    <!-- Alterado para text-center na tag table -->
+                    <table class="w-full text-center border-collapse">
                         <thead>
                             <tr class="bg-slate-800 text-white text-sm uppercase tracking-wider">
-                                <th class="py-3.5 px-4 font-bold rounded-tl-lg">Indicador / Categoria</th>
-                                <th class="py-3.5 px-4 font-bold text-right">Quantidade Total</th>
-                                <th class="py-3.5 px-4 font-bold text-right rounded-tr-lg">Proporção (%)</th>
+                                <!-- Colunas centralizadas -->
+                                <th class="py-3.5 px-4 font-bold rounded-tl-lg text-center">Indicador / Categoria</th>
+                                <th class="py-3.5 px-4 font-bold text-center">Quantidade Total</th>
+                                <th class="py-3.5 px-4 font-bold text-center rounded-tr-lg">Proporção (%)</th>
                             </tr>
                         </thead>
                         <tbody id="corpoTabelaResumo" class="text-slate-700 font-semibold divide-y divide-slate-100">
@@ -227,9 +229,10 @@
                         </tbody>
                         <tfoot>
                             <tr class="bg-slate-100 text-slate-900 border-t-2 border-slate-300 font-black text-lg">
-                                <td class="py-4 px-4 rounded-bl-lg">TOTAL AVALIADO</td>
-                                <td id="tabelaTotalQtd" class="py-4 px-4 text-right text-green-700">0</td>
-                                <td id="tabelaTotalPct" class="py-4 px-4 text-right">100%</td>
+                                <!-- Colunas centralizadas no rodapé -->
+                                <td class="py-4 px-4 rounded-bl-lg text-center">TOTAL AVALIADO</td>
+                                <td id="tabelaTotalQtd" class="py-4 px-4 text-center text-green-700">0</td>
+                                <td id="tabelaTotalPct" class="py-4 px-4 text-center">100%</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -670,10 +673,11 @@
 
                 const row = document.createElement('tr');
                 row.className = "hover:bg-slate-50 transition-colors";
+                // Modificado para text-center
                 row.innerHTML = `
-                    <td class="py-3 px-4 font-bold ${textColor}">${label}</td>
-                    <td class="py-3 px-4 text-right font-extrabold text-slate-800">${valor.toLocaleString()}</td>
-                    <td class="py-3 px-4 text-right text-slate-500 font-bold">${pct}%</td>
+                    <td class="py-3 px-4 text-center font-bold ${textColor}">${label}</td>
+                    <td class="py-3 px-4 text-center font-extrabold text-slate-800">${valor.toLocaleString()}</td>
+                    <td class="py-3 px-4 text-center text-slate-500 font-bold">${pct}%</td>
                 `;
                 corpoTabela.appendChild(row);
             });
