@@ -184,13 +184,13 @@
             </form>
         </div>
 
-        <!-- Seção de Gráficos (Dashboard) -->
+        <!-- Seção de Gráficos e Painel de Resumo (Dashboard) -->
         <div id="dashboard-section" class="mb-12 hidden">
             <h3 class="text-2xl font-extrabold text-slate-700 mb-6 border-b-2 border-slate-200 pb-2 flex items-center">
                 <i data-lucide="bar-chart-2" class="w-7 h-7 mr-2 text-green-600"></i> Dashboard de Produção
             </h3>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <!-- Gráfico de Pizza -->
                 <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-100">
                     <h4 class="text-center font-bold text-slate-700 mb-6 uppercase tracking-wide">Proporção Geral (%)</h4>
@@ -205,6 +205,34 @@
                     <div class="relative h-72 w-full">
                         <canvas id="graficoBarras"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <!-- Tabela Consolidada de Métricas (Aparece no PDF e JPEG) -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 mt-8">
+                <h4 class="text-lg font-bold text-slate-700 mb-4 flex items-center uppercase tracking-wide">
+                    <i data-lucide="table-properties" class="w-5 h-5 mr-2 text-green-600"></i> Tabela Resumo Consolidada
+                </h4>
+                <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-white text-sm uppercase tracking-wider">
+                                <th class="py-3.5 px-4 font-bold rounded-tl-lg">Indicador / Categoria</th>
+                                <th class="py-3.5 px-4 font-bold text-right">Quantidade Total</th>
+                                <th class="py-3.5 px-4 font-bold text-right rounded-tr-lg">Proporção (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoTabelaResumo" class="text-slate-700 font-semibold divide-y divide-slate-100">
+                            <!-- Inserido dinamicamente por JS -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-slate-100 text-slate-900 border-t-2 border-slate-300 font-black text-lg">
+                                <td class="py-4 px-4 rounded-bl-lg">TOTAL AVALIADO</td>
+                                <td id="tabelaTotalQtd" class="py-4 px-4 text-right text-green-700">0</td>
+                                <td id="tabelaTotalPct" class="py-4 px-4 text-right">100%</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
@@ -563,7 +591,7 @@
             lucide.createIcons();
         }
 
-        // ================= GRÁFICOS =================
+        // ================= ATUALIZAR GRÁFICOS E TABELA DE RESUMO =================
         function atualizarGraficos() {
             let mort = 0, ate5 = 0, de5a14 = 0, acima14 = 0;
             registros.forEach(r => {
@@ -573,11 +601,38 @@
                 acima14 += r.metricas.acima14cm;
             });
             const totais = [mort, ate5, de5a14, acima14];
+            const totalSomaGeral = mort + ate5 + de5a14 + acima14;
             
             const labels = ['Mortalidade', 'Até 5cm', '5.1 a 14cm', '> 14cm'];
             const coresBase = ['#ef4444', '#f97316', '#3b82f6', '#22c55e'];
 
-            // GRÁFICO DE PIZZA (COM DATALABELS VISÍVEIS)
+            // 1. ATUALIZAR TABELA DE RESUMO CONSOLIDADO
+            const corpoTabela = document.getElementById('corpoTabelaResumo');
+            corpoTabela.innerHTML = '';
+            
+            labels.forEach((label, idx) => {
+                const valor = totais[idx];
+                const pct = totalSomaGeral > 0 ? Math.round((valor * 100) / totalSomaGeral) : 0;
+                
+                let textColor = 'text-slate-700';
+                if (idx === 0) textColor = 'text-red-600';
+                if (idx === 1) textColor = 'text-orange-600';
+                if (idx === 2) textColor = 'text-blue-600';
+                if (idx === 3) textColor = 'text-green-600';
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition-colors";
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-bold ${textColor}">${label}</td>
+                    <td class="py-3 px-4 text-right font-extrabold text-slate-800">${valor.toLocaleString()}</td>
+                    <td class="py-3 px-4 text-right text-slate-500 font-bold">${pct}%</td>
+                `;
+                corpoTabela.appendChild(row);
+            });
+
+            document.getElementById('tabelaTotalQtd').innerText = totalSomaGeral.toLocaleString();
+
+            // 2. GRÁFICO DE PIZZA (COM DATALABELS VISÍVEIS)
             const ctxPizza = document.getElementById('graficoPizza').getContext('2d');
             if (pieChart) pieChart.destroy();
             pieChart = new Chart(ctxPizza, {
@@ -589,7 +644,7 @@
                         legend: { position: 'bottom', labels: { font: { weight: 'bold' } } },
                         datalabels: {
                             color: '#ffffff',
-                            font: { weight: 'bold', size: 16 },
+                            font: { weight: 'bold', size: 14 },
                             formatter: (value, context) => {
                                 let sum = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                                 if(value === 0 || sum === 0) return null;
@@ -600,7 +655,7 @@
                 }
             });
 
-            // GRÁFICO DE BARRAS COM TENDÊNCIA
+            // 3. GRÁFICO DE BARRAS COM TENDÊNCIA E RÓTULOS ATIVOS
             const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
             if (barChart) barChart.destroy();
             barChart = new Chart(ctxBarras, {
@@ -608,14 +663,55 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { type: 'line', label: 'Tendência', data: totais, borderColor: '#475569', backgroundColor: 'transparent', borderWidth: 3, tension: 0.4, pointRadius: 6, pointBackgroundColor: '#475569', datalabels: { display: false } },
-                        { type: 'bar', label: 'Quantidades', data: totais, backgroundColor: coresBase, borderRadius: 6, datalabels: { display: false } }
+                        { 
+                            type: 'line', 
+                            label: 'Tendência', 
+                            data: totais, 
+                            borderColor: '#475569', 
+                            backgroundColor: 'transparent', 
+                            borderWidth: 3, 
+                            tension: 0.4, 
+                            pointRadius: 6, 
+                            pointBackgroundColor: '#475569', 
+                            datalabels: { display: false } // Desativa rótulos na linha de tendência para evitar poluição visual
+                        },
+                        { 
+                            type: 'bar', 
+                            label: 'Quantidades', 
+                            data: totais, 
+                            backgroundColor: coresBase, 
+                            borderRadius: 6, 
+                            datalabels: { 
+                                display: true,
+                                anchor: 'end',
+                                align: 'top',
+                                offset: -4,
+                                color: '#1e293b',
+                                font: { weight: 'black', size: 13 },
+                                formatter: (val) => val > 0 ? val.toLocaleString() : ''
+                            } 
+                        }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } },
-                    plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold' } } } }
+                    layout: {
+                        padding: {
+                            top: 24 // Dá espaço para que o rótulo de cima não seja cortado
+                        }
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f1f5f9' } 
+                        }, 
+                        x: { 
+                            grid: { display: false } 
+                        } 
+                    },
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { font: { weight: 'bold' } } } 
+                    }
                 }
             });
         }
